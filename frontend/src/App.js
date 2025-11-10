@@ -18,7 +18,6 @@ function App() {
         const p = await getPlayers();
         setPlayers(p);
 
-        // fetch max rounds for current number of players
         const res = await getMaxRounds(p.length);
         setMaxRounds(res.maxRounds ?? res.MaxRounds ?? null);
       } catch (err) {

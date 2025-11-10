@@ -6,11 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 
-// Configuration: Toggle between in-memory or database storage
-// Set "UseDatabase": true in appsettings.json or appsettings.Development.json
 bool useDatabase = builder.Configuration.GetValue<bool>("UseDatabase", false);
 
 if (useDatabase)
@@ -41,7 +38,7 @@ else
 {
     Console.WriteLine("? Using IN-MEMORY storage mode");
 
-    // In-memory configuration (original implementation)
+    // In-memory configuration
     builder.Services.AddSingleton<IRoundRobinService, RoundRobinService>();
     builder.Services.AddSingleton<IPlayerService>(serviceProvider =>
     {
@@ -50,7 +47,6 @@ else
     });
 }
 
-// Add CORS for frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -89,15 +85,10 @@ if (app.Environment.IsDevelopment())
 }
 
 
-// Ensure routing and CORS are configured before HTTPS redirection and
-// authorization so CORS headers are present on redirect and endpoint responses.
+
 app.UseRouting();
 app.UseCors("AllowFrontend");
 
-// In development we avoid forcing HTTPS redirects because the dev server
-// (and the CRA proxy) talk to the HTTP endpoint. Redirect responses can
-// cause the browser to see a cross-origin redirect (http -> https) and
-// trigger CORS failures. In production we keep the redirection.
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();

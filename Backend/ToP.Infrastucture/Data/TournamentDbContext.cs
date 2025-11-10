@@ -16,7 +16,6 @@ namespace ToP.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configure Player entity
             modelBuilder.Entity<Player>(entity =>
             {
                 entity.HasKey(p => p.Id);
@@ -25,12 +24,9 @@ namespace ToP.Infrastructure.Data
                     .HasMaxLength(100);
                 entity.Property(p => p.Image)
                     .HasMaxLength(500);
-                
-                // Create index for faster lookups
                 entity.HasIndex(p => p.Name);
             });
-
-            // Seed initial data (same as from CiP-02)
+            
             modelBuilder.Entity<Player>().HasData(
                 new Player { Id = 1, Name = "Alice", Image = "" },
                 new Player { Id = 2, Name = "Bob", Image = "" },
