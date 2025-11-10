@@ -5,7 +5,7 @@ namespace ToP.Infrastructure.Data
 {
     public class TournamentDbContext : DbContext
     {
-        public TournamentDbContext(DbContextOptions<TournamentDbContext> options) 
+        public TournamentDbContext(DbContextOptions<TournamentDbContext> options)
             : base(options)
         {
         }
@@ -26,7 +26,7 @@ namespace ToP.Infrastructure.Data
                     .HasMaxLength(500);
                 entity.HasIndex(p => p.Name);
             });
-            
+
             modelBuilder.Entity<Player>().HasData(
                 new Player { Id = 1, Name = "Alice", Image = "" },
                 new Player { Id = 2, Name = "Bob", Image = "" },
