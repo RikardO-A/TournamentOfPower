@@ -1,117 +1,68 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "./App.css";
-import { getPlayers, getRound, getPlayerSchedule, getMaxRounds } from "./api";
-import PlayersList from "./components/PlayersList";
-import RoundView from "./components/RoundView";
+import TournamentStart from "./pages/TournamentStart";
+import GameBoard from "./pages/GameBoard";
+import Scoreboard from "./pages/Scoreboard";
+import Final from "./pages/Final";
 
 function App() {
-  const [players, setPlayers] = useState([]);
-  const [selectedPlayerIndex, setSelectedPlayerIndex] = useState(null);
-  const [playerSchedule, setPlayerSchedule] = useState(null);
-  const [round, setRound] = useState(1);
-  const [roundData, setRoundData] = useState(null);
-  const [maxRounds, setMaxRounds] = useState(null);
+  const [tournamentState, setTournamentState] = useState("start");
+  const [tournamentData, setTournamentData] = useState(null);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const p = await getPlayers();
-        setPlayers(p);
+  const handleStartTournament = (data) => {
+    // Initial tournament started
+    setTournamentData(data);
+    setTournamentState("game");
+  };
 
-        const res = await getMaxRounds(p.length);
-        setMaxRounds(res.maxRounds ?? res.MaxRounds ?? null);
-      } catch (err) {
-        console.error("Failed to load players", err);
-      }
+  const handlePlayComplete = (updatedData) => {
+    // Player finished their match, show scoreboard
+    setTournamentData(updatedData);
+    setTournamentState("scoreboard");
+  };
+
+  const handleScoreboardNext = (updatedData) => {
+    // Check if tournament is complete after advancing round
+    if (updatedData.isTournamentComplete || updatedData.IsTournamentComplete) {
+      setTournamentData(updatedData);
+      setTournamentState("final");
+    } else {
+      // Tournament continues, go to next match
+      setTournamentData(updatedData);
+      setTournamentState("game");
     }
+  };
 
-    load();
-  }, []);
-
-  useEffect(() => {
-    async function loadRound() {
-      try {
-        const r = await getRound(round);
-        setRoundData(r);
-      } catch (err) {
-        console.error("Failed to load round", err);
-        setRoundData(null);
-      }
-    }
-
-    loadRound();
-  }, [round]);
-
-  async function showPlayerSchedule(i) {
-    setSelectedPlayerIndex(i);
-    try {
-      const sched = await getPlayerSchedule(i);
-      setPlayerSchedule(sched);
-    } catch (err) {
-      console.error("Failed to load schedule", err);
-      setPlayerSchedule(null);
-    }
-  }
+  const handleRestart = () => {
+    setTournamentState("start");
+    setTournamentData(null);
+  };
 
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Tournament of Power — Frontend</h1>
+        <h1>Tournament of Power</h1>
       </header>
 
-      <main style={{ padding: 16 }}>
-        <section style={{ marginBottom: 24 }}>
-          <h2>Players</h2>
-          <PlayersList
-            players={players}
-            onSelect={(i) => showPlayerSchedule(i)}
+      <main className="app-main">
+        {tournamentState === "start" && (
+          <TournamentStart onStart={handleStartTournament} />
+        )}
+
+        {tournamentState === "game" && tournamentData && (
+          <GameBoard
+            data={tournamentData}
+            onPlayComplete={handlePlayComplete}
           />
-        </section>
+        )}
 
-        <section style={{ marginBottom: 24 }}>
-          <h2>Selected player schedule</h2>
-          {selectedPlayerIndex === null && (
-            <p>Select a player to view schedule.</p>
-          )}
-          {playerSchedule && (
-            <div>
-              <h3>{playerSchedule.player ?? playerSchedule.Player}</h3>
-              <p>Participants: {playerSchedule.n ?? playerSchedule.N}</p>
-              <ol>
-                {(playerSchedule.schedule ?? playerSchedule.Schedule ?? []).map(
-                  (s, idx) => (
-                    <li key={idx}>
-                      Round {s.round ?? s.Round}: {s.opponent ?? s.Opponent}
-                    </li>
-                  )
-                )}
-              </ol>
-            </div>
-          )}
-        </section>
+        {tournamentState === "scoreboard" && tournamentData && (
+          <Scoreboard data={tournamentData} onNext={handleScoreboardNext} />
+        )}
 
-        <section>
-          <h2>Round viewer</h2>
-          <div style={{ marginBottom: 8 }}>
-            <label>Round: </label>
-            <input
-              type="number"
-              min={1}
-              max={maxRounds || 100}
-              value={round}
-              onChange={(e) => setRound(Number(e.target.value))}
-            />
-            <span style={{ marginLeft: 8 }}>
-              Max rounds: {maxRounds ?? "—"}
-            </span>
-          </div>
-
-          {roundData ? (
-            <RoundView roundData={roundData} />
-          ) : (
-            <p>No data for this round.</p>
-          )}
-        </section>
+        {tournamentState === "final" && tournamentData && (
+          <Final data={tournamentData} onRestart={handleRestart} />
+        )}
       </main>
     </div>
   );
