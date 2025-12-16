@@ -67,7 +67,7 @@ namespace ToP.Application.Services
             return await _repository.GetCountAsync();
         }
 
-        // Synchronous methods for backward compatibility (delegates to async)
+        // 
         public List<Player> GetAllPlayers()
         {
             return GetAllPlayersAsync().GetAwaiter().GetResult();
